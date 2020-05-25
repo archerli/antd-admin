@@ -4,68 +4,17 @@ const fs = require('fs')
 const path = require('path')
 const lessToJs = require('less-vars-to-js')
 
+// how to speed compile: https://umijs.org/guide/boost-compile-speed
 export default {
-  // IMPORTANT! change next line to yours or delete. And hide in dev
-  // publicPath: 'https://cdn.antd-admin.zuiidea.com/',
-  hash: true,
-  ignoreMomentLocale: true,
-  targets: { ie: 9 },
-  dva: { immer: true },
-  antd: {},
-  dynamicImport: {
-    loading: 'components/Loader/Loader',
-  },
-  // not support in umi@3
-  // pwa: {
-  //   manifestOptions: {
-  //     srcPath: 'manifest.json',
-  //   },
-  // },
-  // Theme for antd
-  // https://ant.design/docs/react/customize-theme
-  theme: lessToJs(
-    fs.readFileSync(path.join(__dirname, './src/themes/default.less'), 'utf8')
-  ),
-  // Webpack Configuration
-  proxy: {
-    '/api/v1/weather': {
-      target: 'https://api.seniverse.com/',
-      changeOrigin: true,
-      pathRewrite: { '^/api/v1/weather': '/v3/weather' },
-    },
-  },
   alias: {
     api: resolve(__dirname, './src/services/'),
     components: resolve(__dirname, './src/components'),
     config: resolve(__dirname, './src/utils/config'),
-    models: resolve(__dirname, './src/models'),
-    services: resolve(__dirname, './src/services'),
     themes: resolve(__dirname, './src/themes'),
     utils: resolve(__dirname, './src/utils'),
   },
-  extraBabelPresets: ['@lingui/babel-preset-react'],
-  extraBabelPlugins: [
-    [
-      'import',
-      {
-        libraryName: 'lodash',
-        libraryDirectory: '',
-        camel2DashComponentName: false,
-      },
-      'lodash',
-    ],
-  ],
-  chainWebpack: function(config, { webpack }) {
-    config.module
-      .rule('js-in-node_modules')
-      .exclude.add(/node_modules/)
-      .end()
-
-    config.module
-      .rule('ts-in-node_modules')
-      .exclude.add(/node_modules/)
-      .end()
-
+  antd: {},
+  chainWebpack: function (config, { webpack }) {
     config.merge({
       optimization: {
         minimize: true,
@@ -119,4 +68,51 @@ export default {
       },
     })
   },
+  // a lower cost way to genereate sourcemap, default is cheap-module-source-map, could save 60% time in dev hotload
+  devtool: 'eval',
+  dva: { immer: true },
+  dynamicImport: {
+    loading: 'components/Loader/Loader',
+  },
+  extraBabelPresets: ['@lingui/babel-preset-react'],
+  extraBabelPlugins: [
+    [
+      'import',
+      {
+        libraryName: 'lodash',
+        libraryDirectory: '',
+        camel2DashComponentName: false,
+      },
+      'lodash',
+    ],
+  ],
+  hash: true,
+  ignoreMomentLocale: true,
+  // umi3 comple node_modules by default, could be disable
+  nodeModulesTransform: {
+    type: 'none',
+    exclude: [],
+  },
+  // Webpack Configuration
+  proxy: {
+    '/api/v1/weather': {
+      target: 'https://api.seniverse.com/',
+      changeOrigin: true,
+      pathRewrite: { '^/api/v1/weather': '/v3/weather' },
+    },
+  },
+  // IMPORTANT! change next line to yours or delete. And hide in dev
+  // publicPath: 'https://cdn.antd-admin.zuiidea.com/',
+  targets: { ie: 9 },
+  // not support in umi@3
+  // pwa: {
+  //   manifestOptions: {
+  //     srcPath: 'manifest.json',
+  //   },
+  // },
+  // Theme for antd
+  // https://ant.design/docs/react/customize-theme
+  theme: lessToJs(
+    fs.readFileSync(path.join(__dirname, './src/themes/default.less'), 'utf8')
+  ),
 }
